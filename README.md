@@ -1,43 +1,40 @@
 # human-docs
 
-A single HTML file that documents your product's architecture. Both humans and AI agents can read it. No build step, no renderer, no framework — open it in a browser.
+A single HTML file that documents your product's architecture. Readable by humans and AI agents. No build step, no renderer, no framework. Open it in a browser.
 
 ![Example: Cal.com architecture doc](screenshot-example.png)
 
-*Cal.com example — definitions, ERD, API surface, changelog, postmortems in one file.*
+*Cal.com example: definitions, ERD, API surface, changelog, postmortems in one file.*
 
 ## Origin
 
-I kept asking AI agents to generate HTML artifacts — ERD visualizations, kanban boards, postmortems, changelog tables. Each time I'd look at the output in a browser, get what I needed, and throw the file away.
+I kept asking AI tools to generate structured documents. ERD visualizations, changelog tables, postmortem writeups. Each time I'd look at the output in a browser, get what I needed, and discard the file.
 
-Then I stopped throwing it away.
+But the output was already organized. The tables had the data. The section headers mapped the architecture. The only waste was starting from zero every time.
 
-The HTML was already structured. The tables already had the data. The section headers already organized the architecture. Why regenerate from scratch when I could just update the sections that changed?
+So I stopped starting from zero. I made a template with section markers so I could update what changed and leave everything else intact. The file compounds over time instead of getting thrown away.
 
-And it turns out HTML is the natural dual-audience format. Humans need rendered visuals — HTML gives that in any browser, no build step. Agents need parseable structure — section markers, semantic tables, and entity cards are easy to read and update programmatically. Markdown needs a renderer (GitHub, VS Code, Obsidian) before a human can see the visual hierarchy. HTML is its own renderer.
-
-So the template is: stop generating disposable artifacts. Start maintaining a single file that compounds.
+I've been using it to stay oriented while building [Tanso](https://tanso.io), and it's been useful enough to share.
 
 ## Why
 
 - **One file.** No scattered pages, no broken links, no "where did we put that?"
-- **HTML, not markdown.** Styled, navigable, with a sidebar. Opens in any browser. Looks good without a renderer. Agents parse the structure directly.
+- **HTML, not markdown.** Styled, navigable, with a sidebar. Opens in any browser without a renderer. Structured enough for agents to parse and update directly.
 - **PM-minded sections.** Definitions (what does "customer" mean here?), postmortems (what broke and why), changelog (what shipped). Not just endpoint lists.
 - **AI-generated, human-curated.** Point an AI at your codebase and this template. It fills in the sections. You decide what stays.
-- **Delta updates.** `<!-- SECTION:name -->` markers let agents update one section without regenerating everything.
-- **Both audiences, one artifact.** Humans read the rendered page. Agents read the HTML source. No format conversion, no sync problem.
+- **Surgical updates.** `<!-- SECTION:name -->` markers let agents update one section without regenerating everything. Like reviewing a git diff: only what actually changed.
 
 ## What's in the box
 
 ```
 template.html   The empty scaffold. Fork this, fill it in.
 PROMPT.md       Prompt for any AI tool to generate/update the doc.
-example.html    Cal.com's architecture — a filled-in example so you can see what "done" looks like.
+example.html    Cal.com's architecture, fully filled in.
 ```
 
 ![Template scaffold](screenshot-template.png)
 
-*The empty template — dark sidebar, section placeholders, ready to fill.*
+*The empty template: dark sidebar, section placeholders, ready to fill.*
 
 ## Usage
 
@@ -55,16 +52,16 @@ Tell your AI tool which sections changed:
 
 > "Update the changelog and postmortems sections. Here's what changed: [paste diff or describe]"
 
-The AI uses `<!-- SECTION:name -->` markers to edit only the affected sections. The rest stays untouched.
+The AI finds the `<!-- SECTION:name -->` markers, edits the content between them, and leaves everything else untouched.
 
 ### Adding sections
 
 The template ships with core sections. PROMPT.md includes optional sections you can add:
 
-- **User Stories** — acceptance criteria tables
-- **Customer Model** — for multi-tenant products
-- **Board** — kanban for small teams
-- **Emails** — transactional email catalog
+- **User Stories**: acceptance criteria tables
+- **Customer Model**: for multi-tenant products
+- **Board**: kanban for small teams
+- **Emails**: transactional email catalog
 
 ## Sections
 
@@ -79,13 +76,13 @@ The template ships with core sections. PROMPT.md includes optional sections you 
 
 ## Philosophy
 
-**Docs should be readable without context.** If you hand this file to someone who just joined your team, they should understand what the product does, what the data looks like, what broke recently, and what shipped.
+**Docs should be readable without context.** Hand this file to someone who just joined your team. They should understand what the product does, what the data looks like, what broke recently, and what shipped.
 
-**Postmortems are the most valuable section.** Changelogs tell you what happened. Postmortems tell you what to never do again.
+**Postmortems are the most valuable section.** Changelogs record what happened. Postmortems record what not to do again.
 
-**One file is a feature, not a limitation.** The moment you split docs across files, someone stops updating one of them. A single file means one place to look, one thing to update, one artifact to share.
+**One file is a feature, not a limitation.** The moment you split docs across files, someone stops updating one of them. One file means one place to look, one thing to update, one artifact to share.
 
-**AI generates, humans curate.** The AI reads your codebase and fills in the template. You read the output and fix what it got wrong. Over time the doc compounds: each update adds to the changelog, each bug adds a postmortem.
+**AI generates, humans curate.** The AI reads your codebase and fills in the template. You read the output and fix what it got wrong. Over time the doc compounds: each update adds to the changelog, each bug adds a postmortem, each migration updates the ERD.
 
 ## License
 
