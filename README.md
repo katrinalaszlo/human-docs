@@ -14,7 +14,7 @@ But the output was already organized. The tables had the data. The section heade
 
 So I stopped starting from zero. I made a template with section markers so I could update what changed and leave everything else intact. The file compounds over time instead of getting thrown away.
 
-I've been using it to stay oriented while building [Tanso](https://tanso.io), and it's been useful enough to share.
+I've been using it to stay oriented while building [Tanso](https://tansohq.com), and it's been useful enough to share.
 
 ## Why
 
