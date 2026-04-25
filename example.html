@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cal.com — Architecture</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => mermaid.initialize({ theme: 'dark', startOnLoad: true }));</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; display: flex; }
+
+  nav { position: fixed; top: 0; left: 0; width: 220px; height: 100vh; background: #010409; border-right: 1px solid #21262d; padding: 0; overflow-y: auto; z-index: 10; }
+  nav h2 { color: #f0f6fc; font-size: 13px; letter-spacing: 0.02em; padding: 20px 16px 14px; border-bottom: 1px solid #21262d; margin: 0 0 8px; }
+  nav a { display: block; padding: 3px 16px 3px 28px; font-size: 11px; color: #484f58; text-decoration: none; transition: color 0.15s, background 0.15s; }
+  nav a:hover { color: #c9d1d9; background: #161b22; }
+  nav a.section-head { color: #c9d1d9; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 16px 3px; margin-top: 16px; }
+
+  main { margin-left: 220px; padding: 32px 40px; max-width: 1000px; width: 100%; }
+  h1 { color: #f0f6fc; font-size: 26px; margin-bottom: 4px; }
+  .subtitle { color: #8b949e; font-size: 14px; margin-bottom: 32px; }
+  h2 { color: #f0f6fc; font-size: 20px; margin-top: 48px; margin-bottom: 16px; padding-top: 16px; border-top: 1px solid #21262d; }
+  h3 { color: #f0f6fc; font-size: 16px; margin-top: 24px; margin-bottom: 10px; }
+  h4 { color: #c9d1d9; font-size: 14px; margin-top: 16px; margin-bottom: 6px; }
+  p, li { font-size: 13px; line-height: 1.7; }
+  ul { padding-left: 20px; margin: 8px 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th, td { text-align: left; padding: 6px 10px; font-size: 12px; border-bottom: 1px solid #21262d; }
+  th { color: #8b949e; font-weight: 600; background: #0d1117; position: sticky; top: 0; }
+  code { background: #21262d; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #79c0ff; }
+  pre { background: #161b22; border-radius: 8px; padding: 16px; overflow-x: auto; font-size: 12px; line-height: 1.7; border: 1px solid #21262d; margin: 12px 0; }
+
+  .mermaid { background: #161b22; border-radius: 8px; padding: 24px; overflow-x: auto; border: 1px solid #21262d; margin: 16px 0; }
+
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+  .card.red { border-left: 3px solid #f85149; }
+  .card.green { border-left: 3px solid #3fb950; }
+  .card h4 { margin-top: 0; }
+  .card.red h4 { color: #f85149; }
+  .card.green h4 { color: #3fb950; }
+
+  .erd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+  .entity { background: #161b22; border: 1px solid #30363d; border-radius: 6px; overflow: hidden; }
+  .entity-hdr { background: #21262d; padding: 6px 10px; font-weight: 600; font-size: 13px; color: #f0f6fc; display: flex; align-items: center; gap: 6px; }
+  .entity-hdr .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-core { background: #3fb950; } .dot-scheduling { background: #79c0ff; } .dot-integration { background: #a371f7; } .dot-billing { background: #d29922; } .dot-other { background: #8b949e; }
+  .entity td { padding: 2px 10px; font-size: 11px; }
+  .entity td:first-child { color: #79c0ff; font-family: monospace; }
+  .entity td:last-child { color: #8b949e; text-align: right; }
+  .pk { color: #d29922 !important; font-weight: 600; }
+  .fk { color: #a371f7 !important; }
+
+  .warn { background: #d2992215; border: 1px solid #d2992233; border-radius: 6px; padding: 12px 16px; margin: 12px 0; }
+  .warn strong { color: #d29922; }
+
+  .pm { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin: 16px 0; }
+  .pm-title { font-size: 14px; font-weight: 600; color: #f0f6fc; margin-bottom: 4px; }
+
+  blockquote { border-left: 3px solid #30363d; padding-left: 12px; color: #8b949e; margin: 8px 0; font-style: italic; }
+</style>
+</head>
+<body>
+
+<nav>
+  <h2>Cal.com</h2>
+  <a href="#definitions" class="section-head">Definitions</a>
+  <a href="#scheduling-types">Scheduling Types</a>
+  <a href="#booking-lifecycle">Booking Lifecycle</a>
+  <a href="#data-model" class="section-head">Data Model</a>
+  <a href="#erd-core">Core</a>
+  <a href="#erd-scheduling">Scheduling</a>
+  <a href="#erd-integration">Integrations</a>
+  <a href="#erd-billing">Billing</a>
+  <a href="#relationships">Relationships</a>
+  <a href="#pages" class="section-head">Pages &amp; Routes</a>
+  <a href="#pages-app">App Pages</a>
+  <a href="#pages-public">Public Pages</a>
+  <a href="#api" class="section-head">API Surface</a>
+  <a href="#api-trpc">tRPC Routers</a>
+  <a href="#api-rest">REST Endpoints</a>
+  <a href="#changelog" class="section-head">Changelog</a>
+  <a href="#postmortems" class="section-head">Postmortems</a>
+</nav>
+
+<main>
+
+<h1>Cal.com Architecture</h1>
+<p class="subtitle">Open-source scheduling infrastructure. Prisma + tRPC + Next.js monorepo. Updated 2026-04-25.</p>
+
+<!-- SECTION:definitions -->
+<h2 id="definitions">Definitions</h2>
+<p>Terms that have precise meanings in Cal.com. Mixing them up causes scheduling bugs.</p>
+<table>
+  <tr><th>Term</th><th>Meaning</th><th>Where</th><th>Example</th></tr>
+  <tr><td><strong>Event Type</strong></td><td>A bookable configuration — duration, location, price, scheduling rules. Not a booking itself.</td><td><code>EventType</code> model</td><td>"30 Min Meeting", "Paid Consultation"</td></tr>
+  <tr><td><strong>Booking</strong></td><td>An actual scheduled appointment created when someone books an event type.</td><td><code>Booking</code> model</td><td>uid <code>abc123</code>, status ACCEPTED</td></tr>
+  <tr><td><strong>Attendee</strong></td><td>The person who books — NOT the host. One booking can have multiple attendees if guests are enabled.</td><td><code>Attendee</code> model</td><td>External person booking a call</td></tr>
+  <tr><td><strong>Host</strong></td><td>A user assigned to an event type. For team events, multiple hosts with priority and weight.</td><td><code>Host</code> model</td><td>Round-robin member with priority=1</td></tr>
+  <tr><td><strong>Credential</strong></td><td>Stored OAuth token or API key for an installed app (Google Calendar, Zoom, Stripe). Key is encrypted JSON.</td><td><code>Credential</code> model</td><td>Google Calendar OAuth refresh token</td></tr>
+  <tr><td><strong>Schedule</strong></td><td>A named availability template — working hours, days, timezone. Users can have multiple schedules.</td><td><code>Schedule</code> model</td><td>"Work Hours", "Conference Week"</td></tr>
+  <tr><td><strong>Availability</strong></td><td>A single time window within a schedule. Multiple availability rows compose a schedule.</td><td><code>Availability</code> model</td><td>Mon-Fri 9:00-17:00</td></tr>
+  <tr><td><code>schedulingType</code></td><td>How a team event type assigns hosts: <code>ROUND_ROBIN</code>, <code>COLLECTIVE</code>, or <code>MANAGED</code>.</td><td><code>EventType.schedulingType</code></td><td>Round-robin rotates; collective requires all</td></tr>
+  <tr><td><strong>Profile</strong></td><td>A user's identity within an organization. One user can have profiles in multiple orgs.</td><td><code>Profile</code> model</td><td>username "kat" in org "acme"</td></tr>
+  <tr><td><strong>App</strong></td><td>An installable integration from the Cal.com app store. Has categories, credentials, and webhook bindings.</td><td><code>App</code> model</td><td>Zoom, Google Calendar, Stripe</td></tr>
+</table>
+
+<h3 id="scheduling-types">Scheduling Types (team events)</h3>
+<div class="card-grid">
+  <div class="card">
+    <h4>ROUND_ROBIN</h4>
+    <p>Rotates between available hosts. Each host has <code>priority</code> and <code>weight</code> fields. Higher priority hosts are preferred; weight controls distribution ratio among same-priority hosts.</p>
+  </div>
+  <div class="card">
+    <h4>COLLECTIVE</h4>
+    <p>All hosts must be available. The booking is only created when every assigned host's calendar is free. Used for panel interviews, group calls.</p>
+  </div>
+  <div class="card">
+    <h4>MANAGED</h4>
+    <p>Team-level event type that syncs configuration to all members. Admin controls the template; members get individual copies they can't fully override.</p>
+  </div>
+</div>
+
+<h3 id="booking-lifecycle">Booking Lifecycle</h3>
+<pre>
+<strong>1. Slot check</strong>
+  GET /api/trpc/viewer.slots.getSchedule
+  → reads Schedule + Availability rows, checks calendar busy times via Credential
+  → returns available slots in booker's timezone
+
+<strong>2. Booking created</strong>
+  POST /api/trpc/viewer.bookings.create
+  → status = ACCEPTED (or PENDING if requiresConfirmation = true)
+  → Attendee rows created, calendar events pushed via credentials
+  → Webhook fired: BOOKING_CREATED
+
+<strong>3. Confirmation (if required)</strong>
+  Host confirms → status = ACCEPTED, calendar events created
+  Host rejects → status = REJECTED, attendee notified
+
+<strong>4. Reschedule</strong>
+  Original booking status → CANCELLED (with rescheduledReason)
+  New booking created with link to original
+
+<strong>5. Cancellation</strong>
+  status → CANCELLED, calendar events deleted
+  Webhook fired: BOOKING_CANCELLED
+</pre>
+<!-- /SECTION:definitions -->
+
+
+<!-- SECTION:data-model -->
+<h2 id="data-model">Data Model</h2>
+<p style="font-size:12px; color:#8b949e; margin-bottom:8px;">Source: <code>packages/prisma/schema.prisma</code>. Prisma + PostgreSQL.</p>
+
+<div class="mermaid">
+erDiagram
+    User ||--o{ Membership : "joins teams"
+    Team ||--o{ Membership : "has members"
+    User ||--o{ EventType : "owns"
+    Team ||--o{ EventType : "owns"
+    User ||--o{ Booking : "hosts"
+    EventType ||--o{ Booking : "produces"
+    Booking ||--o{ Attendee : "has"
+    Booking ||--o{ Payment : "collects"
+    User ||--o{ Schedule : "defines"
+    Schedule ||--o{ Availability : "contains"
+    EventType ||--o{ Host : "assigned"
+    User ||--o{ Host : "is"
+    User ||--o{ Credential : "stores"
+    Team ||--o{ Credential : "stores"
+    Credential }o--|| App : "belongs to"
+    EventType ||--o{ Webhook : "triggers"
+
+    User {
+        int id PK
+        string email
+        string username
+        string timeZone
+        enum role
+    }
+    Team {
+        int id PK
+        string name
+        string slug
+        bool isOrganization
+    }
+    Membership {
+        int id PK
+        int userId FK
+        int teamId FK
+        enum role
+        bool accepted
+    }
+    EventType {
+        int id PK
+        string title
+        string slug
+        int length
+        int userId FK
+        int teamId FK
+        enum schedulingType
+    }
+    Booking {
+        int id PK
+        string uid
+        int userId FK
+        int eventTypeId FK
+        datetime startTime
+        datetime endTime
+        enum status
+        bool paid
+    }
+    Attendee {
+        int id PK
+        string email
+        string name
+        string timeZone
+        int bookingId FK
+    }
+    Schedule {
+        int id PK
+        int userId FK
+        string name
+        string timeZone
+    }
+    Availability {
+        int id PK
+        int scheduleId FK
+        int days
+        time startTime
+        time endTime
+    }
+    Host {
+        int userId PK
+        int eventTypeId PK
+        bool isFixed
+        int priority
+        int weight
+    }
+    Credential {
+        int id PK
+        string type
+        json key
+        int userId FK
+        int teamId FK
+        string appId FK
+    }
+    App {
+        string slug PK
+        string dirName
+        string categories
+        bool enabled
+    }
+    Payment {
+        int id PK
+        string uid
+        int bookingId FK
+        string appId FK
+        int amount
+        string currency
+    }
+    Webhook {
+        string id PK
+        int userId FK
+        int teamId FK
+        string subscriberUrl
+        string eventTriggers
+    }
+</div>
+
+<h3 id="erd-core">Core (Users &amp; Teams)</h3>
+<div class="erd-grid">
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-core"></div>User</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td>uuid</td><td>STRING UNIQUE</td></tr>
+    <tr><td>email</td><td>STRING UNIQUE</td></tr>
+    <tr><td>username</td><td>STRING</td></tr>
+    <tr><td>name</td><td>STRING</td></tr>
+    <tr><td>timeZone</td><td>STRING (default "America/New_York")</td></tr>
+    <tr><td>role</td><td>USER | ADMIN</td></tr>
+    <tr><td>identityProvider</td><td>CAL | GOOGLE | SAML</td></tr>
+  </table></div>
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-core"></div>Team</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td>name</td><td>STRING</td></tr>
+    <tr><td>slug</td><td>STRING UNIQUE</td></tr>
+    <tr><td>isOrganization</td><td>BOOLEAN</td></tr>
+    <tr><td>isPlatform</td><td>BOOLEAN</td></tr>
+    <tr><td>parentId</td><td>INT FK → Team (org hierarchy)</td></tr>
+  </table></div>
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-core"></div>Membership</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td class="fk">userId</td><td>FK → User</td></tr>
+    <tr><td class="fk">teamId</td><td>FK → Team</td></tr>
+    <tr><td>role</td><td>MEMBER | ADMIN | OWNER</td></tr>
+    <tr><td>accepted</td><td>BOOLEAN</td></tr>
+    <tr><td class="fk">customRoleId</td><td>FK → Role</td></tr>
+  </table></div>
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-core"></div>Profile</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td>uid</td><td>STRING UNIQUE</td></tr>
+    <tr><td class="fk">userId</td><td>FK → User</td></tr>
+    <tr><td class="fk">organizationId</td><td>FK → Team</td></tr>
+    <tr><td>username</td><td>STRING</td></tr>
+  </table></div>
+</div>
+
+<h3 id="erd-scheduling">Scheduling (Events &amp; Bookings)</h3>
+<div class="erd-grid">
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-scheduling"></div>EventType</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td>title</td><td>STRING</td></tr>
+    <tr><td>slug</td><td>STRING</td></tr>
+    <tr><td>length</td><td>INT (minutes)</td></tr>
+    <tr><td class="fk">userId</td><td>FK → User (null for team events)</td></tr>
+    <tr><td class="fk">teamId</td><td>FK → Team</td></tr>
+    <tr><td>schedulingType</td><td>ROUND_ROBIN | COLLECTIVE | MANAGED</td></tr>
+    <tr><td>periodType</td><td>UNLIMITED | ROLLING | RANGE</td></tr>
+    <tr><td>requiresConfirmation</td><td>BOOLEAN</td></tr>
+    <tr><td>hidden</td><td>BOOLEAN</td></tr>
+    <tr><td>locations</td><td>JSON</td></tr>
+  </table></div>
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-scheduling"></div>Booking</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td>uid</td><td>STRING UNIQUE</td></tr>
+    <tr><td class="fk">userId</td><td>FK → User (host)</td></tr>
+    <tr><td class="fk">eventTypeId</td><td>FK → EventType</td></tr>
+    <tr><td>title</td><td>STRING</td></tr>
+    <tr><td>startTime</td><td>DATETIME</td></tr>
+    <tr><td>endTime</td><td>DATETIME</td></tr>
+    <tr><td>status</td><td>PENDING | ACCEPTED | REJECTED | CANCELLED | AWAITING_HOST</td></tr>
+    <tr><td>paid</td><td>BOOLEAN</td></tr>
+    <tr><td>noShowHost</td><td>BOOLEAN</td></tr>
+  </table></div>
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-scheduling"></div>Attendee</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td>email</td><td>STRING</td></tr>
+    <tr><td>name</td><td>STRING</td></tr>
+    <tr><td>timeZone</td><td>STRING</td></tr>
+    <tr><td class="fk">bookingId</td><td>FK → Booking</td></tr>
+    <tr><td>noShow</td><td>BOOLEAN</td></tr>
+  </table></div>
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-scheduling"></div>Host</div><table>
+    <tr><td class="fk">userId</td><td>FK → User (composite PK)</td></tr>
+    <tr><td class="fk">eventTypeId</td><td>FK → EventType (composite PK)</td></tr>
+    <tr><td>isFixed</td><td>BOOLEAN</td></tr>
+    <tr><td>priority</td><td>INT</td></tr>
+    <tr><td>weight</td><td>INT</td></tr>
+    <tr><td class="fk">scheduleId</td><td>FK → Schedule</td></tr>
+  </table></div>
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-scheduling"></div>Schedule</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td class="fk">userId</td><td>FK → User</td></tr>
+    <tr><td>name</td><td>STRING</td></tr>
+    <tr><td>timeZone</td><td>STRING</td></tr>
+  </table></div>
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-scheduling"></div>Availability</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td class="fk">userId</td><td>FK → User</td></tr>
+    <tr><td class="fk">eventTypeId</td><td>FK → EventType</td></tr>
+    <tr><td class="fk">scheduleId</td><td>FK → Schedule</td></tr>
+    <tr><td>days</td><td>INT[] (0=Sun, 6=Sat)</td></tr>
+    <tr><td>startTime</td><td>TIME</td></tr>
+    <tr><td>endTime</td><td>TIME</td></tr>
+    <tr><td>date</td><td>DATE (for date-specific overrides)</td></tr>
+  </table></div>
+</div>
+
+<h3 id="erd-integration">Integrations (Apps &amp; Credentials)</h3>
+<div class="erd-grid">
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-integration"></div>App</div><table>
+    <tr><td class="pk">slug</td><td>STRING PK</td></tr>
+    <tr><td>dirName</td><td>STRING UNIQUE</td></tr>
+    <tr><td>categories</td><td>AppCategories[]</td></tr>
+    <tr><td>enabled</td><td>BOOLEAN</td></tr>
+  </table></div>
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-integration"></div>Credential</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td>type</td><td>STRING (e.g. "google_calendar")</td></tr>
+    <tr><td>key</td><td>JSON (encrypted OAuth tokens)</td></tr>
+    <tr><td class="fk">userId</td><td>FK → User</td></tr>
+    <tr><td class="fk">teamId</td><td>FK → Team</td></tr>
+    <tr><td class="fk">appId</td><td>FK → App</td></tr>
+    <tr><td>invalid</td><td>BOOLEAN</td></tr>
+  </table></div>
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-integration"></div>Webhook</div><table>
+    <tr><td class="pk">id</td><td>STRING PK</td></tr>
+    <tr><td class="fk">userId</td><td>FK → User</td></tr>
+    <tr><td class="fk">teamId</td><td>FK → Team</td></tr>
+    <tr><td class="fk">eventTypeId</td><td>FK → EventType</td></tr>
+    <tr><td>subscriberUrl</td><td>STRING</td></tr>
+    <tr><td>active</td><td>BOOLEAN</td></tr>
+    <tr><td>eventTriggers</td><td>WebhookTriggerEvents[]</td></tr>
+  </table></div>
+</div>
+
+<h3 id="erd-billing">Billing (Payments)</h3>
+<div class="erd-grid">
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-billing"></div>Payment</div><table>
+    <tr><td class="pk">id</td><td>INT PK</td></tr>
+    <tr><td>uid</td><td>STRING UNIQUE</td></tr>
+    <tr><td class="fk">bookingId</td><td>FK → Booking</td></tr>
+    <tr><td class="fk">appId</td><td>FK → App (stripe, paypal)</td></tr>
+    <tr><td>amount</td><td>INT (cents)</td></tr>
+    <tr><td>currency</td><td>STRING</td></tr>
+    <tr><td>success</td><td>BOOLEAN</td></tr>
+    <tr><td>refunded</td><td>BOOLEAN</td></tr>
+    <tr><td>paymentOption</td><td>ON_BOOKING | HOLD</td></tr>
+    <tr><td>externalId</td><td>STRING (Stripe payment_intent ID)</td></tr>
+  </table></div>
+</div>
+
+<div class="warn"><strong>Key rule:</strong> <code>Payment.amount</code> is stored in cents (smallest currency unit). Display code must divide by 100. <code>paymentOption = HOLD</code> means the charge is authorized but not captured until the host confirms.</div>
+
+<h3 id="relationships">Relationships</h3>
+<pre>
+User ──┐
+       ├── Membership ──┐
+Team ──┘                 └── (role: MEMBER | ADMIN | OWNER)
+  │
+  ├── EventType
+  │     ├── Host[] (userId + eventTypeId composite PK)
+  │     ├── Booking[]
+  │     │     ├── Attendee[]
+  │     │     └── Payment[]
+  │     ├── Availability[] (event-specific overrides)
+  │     └── Webhook[]
+  │
+  ├── Credential[] (team-level app installs)
+  │
+User
+  ├── Schedule[]
+  │     └── Availability[] (general working hours)
+  ├── Credential[] (user-level app installs)
+  ├── Booking[] (as host)
+  └── Profile[] (per-organization identity)
+
+App (slug PK)
+  ├── Credential[] (installed instances)
+  └── Payment[] (payment processor apps)
+</pre>
+<!-- /SECTION:data-model -->
+
+
+<!-- SECTION:pages -->
+<h2 id="pages">Pages &amp; Routes</h2>
+
+<h3 id="pages-app">App Pages (authenticated)</h3>
+<table>
+  <tr><th>Path</th><th>Component</th><th>Purpose</th></tr>
+  <tr><td><code>/event-types</code></td><td>EventTypes</td><td>Manage bookable event types — create, edit, duplicate, toggle visibility</td></tr>
+  <tr><td><code>/bookings</code></td><td>Bookings</td><td>View upcoming/past/cancelled bookings, confirm pending ones</td></tr>
+  <tr><td><code>/availability</code></td><td>Availability</td><td>Define named schedules with working hours and date overrides</td></tr>
+  <tr><td><code>/teams</code></td><td>Teams</td><td>Create and manage teams, invite members, set roles</td></tr>
+  <tr><td><code>/apps</code></td><td>AppStore</td><td>Browse and install calendar, video, payment, and messaging integrations</td></tr>
+  <tr><td><code>/apps/installed</code></td><td>InstalledApps</td><td>Manage installed app credentials and settings</td></tr>
+  <tr><td><code>/workflows</code></td><td>Workflows</td><td>Automation rules — send reminders, texts, webhooks on booking events</td></tr>
+  <tr><td><code>/settings/my-account</code></td><td>GeneralSettings</td><td>Profile, timezone, language, appearance</td></tr>
+  <tr><td><code>/settings/security</code></td><td>SecuritySettings</td><td>Password, 2FA, session management</td></tr>
+  <tr><td><code>/settings/developer</code></td><td>DeveloperSettings</td><td>API keys, webhooks configuration</td></tr>
+</table>
+
+<h3 id="pages-public">Public Pages (unauthenticated)</h3>
+<table>
+  <tr><th>Path</th><th>Component</th><th>Purpose</th></tr>
+  <tr><td><code>/[username]</code></td><td>UserProfile</td><td>Public profile showing all visible event types for a user</td></tr>
+  <tr><td><code>/[username]/[event-slug]</code></td><td>BookingPage</td><td>Calendar picker + time slot selection for booking</td></tr>
+  <tr><td><code>/team/[slug]</code></td><td>TeamProfile</td><td>Team's public page with shared event types</td></tr>
+  <tr><td><code>/team/[slug]/[event-slug]</code></td><td>TeamBookingPage</td><td>Book a team event (round-robin, collective)</td></tr>
+  <tr><td><code>/booking/[uid]</code></td><td>BookingConfirmation</td><td>Confirmation page after booking — shows details, calendar links</td></tr>
+  <tr><td><code>/reschedule/[uid]</code></td><td>Reschedule</td><td>Reschedule an existing booking — cancels original, creates new</td></tr>
+  <tr><td><code>/d/[link]/[slug]</code></td><td>DynamicBooking</td><td>Ad-hoc booking link for multiple users without a predefined event type</td></tr>
+</table>
+<!-- /SECTION:pages -->
+
+
+<!-- SECTION:api -->
+<h2 id="api">API Surface</h2>
+
+<h3 id="api-trpc">tRPC Routers (<code>packages/trpc/server/routers/viewer/</code>)</h3>
+<table>
+  <tr><th>Router</th><th>Key Procedures</th><th>Purpose</th></tr>
+  <tr><td><code>bookings</code></td><td>get, create, confirm, cancel, editLocation</td><td>Full booking lifecycle — CRUD, confirmation, cancellation</td></tr>
+  <tr><td><code>eventTypes</code></td><td>list, get, create, update, delete, duplicate</td><td>Manage bookable event configurations</td></tr>
+  <tr><td><code>availability</code></td><td>list, schedule.get, schedule.create, schedule.update</td><td>Define and manage availability schedules</td></tr>
+  <tr><td><code>slots</code></td><td>getSchedule</td><td>Compute available time slots for a given event type and date range</td></tr>
+  <tr><td><code>apps</code></td><td>listLocal, toggle, saveKeys, checkForGCal</td><td>App store — install, configure, toggle integrations</td></tr>
+  <tr><td><code>credentials</code></td><td>list, delete</td><td>Manage stored OAuth tokens and API keys</td></tr>
+  <tr><td><code>calendars</code></td><td>connectedCalendars, setDestinationCalendar</td><td>Calendar sync — connect, select destination for new events</td></tr>
+  <tr><td><code>webhook</code></td><td>list, create, edit, delete, testTrigger</td><td>Webhook subscription management</td></tr>
+  <tr><td><code>payments</code></td><td>chargeCard</td><td>Process payment for paid bookings</td></tr>
+  <tr><td><code>me</code></td><td>get, update, delete, away</td><td>Current user profile operations</td></tr>
+  <tr><td><code>users</code></td><td>get</td><td>Lookup other users (admin)</td></tr>
+  <tr><td><code>apiKeys</code></td><td>list, create, edit, delete</td><td>Personal API key management</td></tr>
+  <tr><td><code>ooo</code></td><td>list, create, delete</td><td>Out-of-office scheduling</td></tr>
+  <tr><td><code>travelSchedules</code></td><td>list, create, delete</td><td>Timezone overrides for travel</td></tr>
+</table>
+
+<h3 id="api-rest">REST API (<code>apps/web/app/api/</code>)</h3>
+<table>
+  <tr><th>Endpoint</th><th>Method</th><th>Purpose</th></tr>
+  <tr><td><code>/api/trpc/[trpc]</code></td><td>GET/POST</td><td>tRPC handler — all procedures above route through this</td></tr>
+  <tr><td><code>/api/book/event</code></td><td>POST</td><td>Public booking creation endpoint (called by booking page)</td></tr>
+  <tr><td><code>/api/cancel</code></td><td>POST</td><td>Cancel a booking by uid</td></tr>
+  <tr><td><code>/api/integrations/[integration]</code></td><td>*</td><td>OAuth callbacks and webhook receivers for installed apps</td></tr>
+  <tr><td><code>/api/availability/[user]</code></td><td>GET</td><td>Public availability check for a user</td></tr>
+</table>
+<!-- /SECTION:api -->
+
+
+<!-- SECTION:changelog -->
+<h2 id="changelog">Changelog</h2>
+<p style="font-size:12px; color:#8b949e; margin-bottom:16px;">Selected entries from Cal.com's public release history.</p>
+
+<div style="margin-bottom:16px;">
+  <button onclick="filterChangelog('all')" style="background:#21262d;color:#c9d1d9;border:1px solid #30363d;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">All</button>
+  <button onclick="filterChangelog('bug')" style="background:#da363322;color:#f85149;border:1px solid #da363344;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">Bugs</button>
+  <button onclick="filterChangelog('feature')" style="background:#3fb95022;color:#3fb950;border:1px solid #3fb95044;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">Features</button>
+  <button onclick="filterChangelog('perf')" style="background:#79c0ff22;color:#79c0ff;border:1px solid #79c0ff44;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">Perf</button>
+  <button onclick="filterChangelog('docs')" style="background:#8b949e22;color:#8b949e;border:1px solid #8b949e44;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;">Docs</button>
+</div>
+
+<table id="changelog-table">
+  <tr><th style="width:80px;">Type</th><th style="width:100px;">Date</th><th>Change</th></tr>
+  <tr data-type="feature"><td><span style="color:#3fb950;">FEATURE</span></td><td>2024-10-15</td><td><strong>Organizations</strong> — Teams can now be organizations with sub-teams, shared members, and unified billing. <code>Team.isOrganization</code> flag + parent/child hierarchy.</td></tr>
+  <tr data-type="feature"><td><span style="color:#3fb950;">FEATURE</span></td><td>2024-09-20</td><td><strong>Round-robin weights</strong> — Hosts get <code>weight</code> field alongside priority. Controls distribution ratio among same-priority hosts. <span style="color:#79c0ff;font-size:11px;">→ PM-1</span></td></tr>
+  <tr data-type="feature"><td><span style="color:#3fb950;">FEATURE</span></td><td>2024-08-05</td><td><strong>Out of Office</strong> — New <code>ooo</code> tRPC router. Users set date ranges where they're unavailable; slot calculation respects OOO periods.</td></tr>
+  <tr data-type="feature"><td><span style="color:#3fb950;">FEATURE</span></td><td>2024-07-12</td><td><strong>Travel schedules</strong> — Timezone overrides for specific date ranges. User traveling to London gets slots in GMT without changing default timezone.</td></tr>
+  <tr data-type="bug" style="cursor:pointer;" onclick="location.href='#pm2'"><td><span style="color:#f85149;">BUG</span></td><td>2024-06-30</td><td><strong>Timezone offset double-applied on reschedule</strong> — Rescheduled bookings shifted by UTC offset twice <span style="color:#79c0ff;font-size:11px;">→ PM-2</span></td></tr>
+  <tr data-type="feature"><td><span style="color:#3fb950;">FEATURE</span></td><td>2024-05-18</td><td><strong>Managed event types</strong> — <code>schedulingType = MANAGED</code>. Admin creates template, members get synced copies. Config changes propagate.</td></tr>
+  <tr data-type="bug" style="cursor:pointer;" onclick="location.href='#pm3'"><td><span style="color:#f85149;">BUG</span></td><td>2024-04-22</td><td><strong>Collective booking ignored DST transition</strong> — All-hands slot showed available but one host's calendar had shifted <span style="color:#79c0ff;font-size:11px;">→ PM-3</span></td></tr>
+  <tr data-type="perf"><td><span style="color:#79c0ff;">PERF</span></td><td>2024-03-10</td><td><strong>Slot computation optimized</strong> — Batch calendar busy-time fetches instead of per-host sequential calls. 3x faster for round-robin with 10+ hosts.</td></tr>
+  <tr data-type="feature"><td><span style="color:#3fb950;">FEATURE</span></td><td>2024-02-28</td><td><strong>No-show tracking</strong> — <code>Booking.noShowHost</code> and <code>Attendee.noShow</code> fields. Hosts can mark attendees as no-shows for analytics.</td></tr>
+  <tr data-type="docs"><td><span style="color:#8b949e;">DOCS</span></td><td>2024-01-15</td><td><strong>Platform API docs</strong> — Public REST API documentation for <code>isPlatform</code> teams embedding Cal.com scheduling.</td></tr>
+</table>
+<!-- /SECTION:changelog -->
+
+
+<!-- SECTION:postmortems -->
+<h2 id="postmortems">Postmortems</h2>
+<p style="font-size:12px; color:#8b949e; margin-bottom:16px;">Root cause analysis for scheduling edge cases.</p>
+
+<div class="pm" id="pm1">
+  <div class="pm-title">PM-1: Round-robin skipped hosts with equal priority</div>
+  <table>
+    <tr><th style="width:120px;">Field</th><th>Detail</th></tr>
+    <tr><td><strong>Root Cause</strong></td><td>Round-robin selection sorted hosts by <code>priority</code> and picked the first. When multiple hosts had the same priority, only the first (by ID) was ever selected. The <code>weight</code> field didn't exist yet — distribution was effectively first-wins.</td></tr>
+    <tr><td><strong>Impact</strong></td><td>Teams with 5 equal-priority hosts saw one host getting all bookings. Others got none.</td></tr>
+    <tr><td><strong>Fix</strong></td><td>Added <code>weight</code> column to <code>Host</code>. Selection now uses weighted random among same-priority hosts. Default weight = 100 for backward compatibility.</td></tr>
+    <tr><td><strong>Prevention</strong></td><td>Any "pick one from a group" algorithm needs a distribution mechanism, not just ordering. Test with N &gt; 2 same-priority hosts.</td></tr>
+  </table>
+</div>
+
+<div class="pm" id="pm2">
+  <div class="pm-title">PM-2: Timezone offset double-applied on reschedule</div>
+  <table>
+    <tr><th style="width:120px;">Field</th><th>Detail</th></tr>
+    <tr><td><strong>Root Cause</strong></td><td>Reschedule flow reads the original booking's <code>startTime</code> (stored as UTC), converts to the booker's timezone for display, then converts back to UTC on submit. The second conversion applied the offset again because the intermediate value was already adjusted.</td></tr>
+    <tr><td><strong>Impact</strong></td><td>Rescheduled bookings in UTC+5 shifted by 10 hours instead of 5. Users in UTC+0 were unaffected (offset = 0).</td></tr>
+    <tr><td><strong>Fix</strong></td><td>Reschedule form now receives raw UTC time and only converts once for display. Submission sends the selected slot's UTC time directly — no round-trip conversion.</td></tr>
+    <tr><td><strong>Prevention</strong></td><td>Store and transmit times in UTC. Convert only at the display boundary, never in intermediate processing. Test reschedule in UTC+N where N &gt; 0.</td></tr>
+  </table>
+</div>
+
+<div class="pm" id="pm3">
+  <div class="pm-title">PM-3: Collective booking ignored DST transition</div>
+  <table>
+    <tr><th style="width:120px;">Field</th><th>Detail</th></tr>
+    <tr><td><strong>Root Cause</strong></td><td>Slot computation cached timezone offsets at query time. When a collective event spanned a DST boundary (e.g., booking for Monday after clocks change on Sunday), one host's offset was stale. The slot appeared free because the cached offset put the busy period in the wrong hour.</td></tr>
+    <tr><td><strong>Impact</strong></td><td>Double-booking for collective events near DST transitions. One host had a conflict that the slot calculator didn't see.</td></tr>
+    <tr><td><strong>Fix</strong></td><td>Slot computation now resolves timezone offset per-slot, not per-query. Uses the target date's offset (via <code>Intl.DateTimeFormat</code>) instead of "today's" offset.</td></tr>
+    <tr><td><strong>Prevention</strong></td><td>Never cache timezone offsets across dates. DST transitions happen mid-range. Test availability queries that span the next DST boundary in the host's timezone.</td></tr>
+  </table>
+</div>
+<!-- /SECTION:postmortems -->
+
+
+<script>
+function filterChangelog(type) {
+  const rows = document.querySelectorAll('#changelog-table tr[data-type]');
+  rows.forEach(row => {
+    row.style.display = (type === 'all' || row.dataset.type === type) ? '' : 'none';
+  });
+}
+</script>
+
+</main>
+</body>
+</html>

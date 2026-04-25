@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PROJECT_NAME — Architecture</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => mermaid.initialize({ theme: 'dark', startOnLoad: true }));</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; display: flex; }
+
+  nav { position: fixed; top: 0; left: 0; width: 220px; height: 100vh; background: #010409; border-right: 1px solid #21262d; padding: 0; overflow-y: auto; z-index: 10; }
+  nav h2 { color: #f0f6fc; font-size: 13px; letter-spacing: 0.02em; padding: 20px 16px 14px; border-bottom: 1px solid #21262d; margin: 0 0 8px; }
+  nav a { display: block; padding: 3px 16px 3px 28px; font-size: 11px; color: #484f58; text-decoration: none; transition: color 0.15s, background 0.15s; }
+  nav a:hover { color: #c9d1d9; background: #161b22; }
+  nav a.section-head { color: #c9d1d9; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 16px 3px; margin-top: 16px; }
+
+  main { margin-left: 220px; padding: 32px 40px; max-width: 1000px; width: 100%; }
+  h1 { color: #f0f6fc; font-size: 26px; margin-bottom: 4px; }
+  .subtitle { color: #8b949e; font-size: 14px; margin-bottom: 32px; }
+  h2 { color: #f0f6fc; font-size: 20px; margin-top: 48px; margin-bottom: 16px; padding-top: 16px; border-top: 1px solid #21262d; }
+  h3 { color: #f0f6fc; font-size: 16px; margin-top: 24px; margin-bottom: 10px; }
+  h4 { color: #c9d1d9; font-size: 14px; margin-top: 16px; margin-bottom: 6px; }
+  p, li { font-size: 13px; line-height: 1.7; }
+  ul { padding-left: 20px; margin: 8px 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th, td { text-align: left; padding: 6px 10px; font-size: 12px; border-bottom: 1px solid #21262d; }
+  th { color: #8b949e; font-weight: 600; background: #0d1117; position: sticky; top: 0; }
+  code { background: #21262d; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #79c0ff; }
+  pre { background: #161b22; border-radius: 8px; padding: 16px; overflow-x: auto; font-size: 12px; line-height: 1.7; border: 1px solid #21262d; margin: 12px 0; }
+
+  .mermaid { background: #161b22; border-radius: 8px; padding: 24px; overflow-x: auto; border: 1px solid #21262d; margin: 16px 0; }
+
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+  .card.red { border-left: 3px solid #f85149; }
+  .card.green { border-left: 3px solid #3fb950; }
+  .card h4 { margin-top: 0; }
+  .card.red h4 { color: #f85149; }
+  .card.green h4 { color: #3fb950; }
+
+  .erd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+  .entity { background: #161b22; border: 1px solid #30363d; border-radius: 6px; overflow: hidden; }
+  .entity-hdr { background: #21262d; padding: 6px 10px; font-weight: 600; font-size: 13px; color: #f0f6fc; display: flex; align-items: center; gap: 6px; }
+  .entity-hdr .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-core { background: #3fb950; } .dot-data { background: #79c0ff; } .dot-ext { background: #a371f7; } .dot-other { background: #8b949e; }
+  .entity td { padding: 2px 10px; font-size: 11px; }
+  .entity td:first-child { color: #79c0ff; font-family: monospace; }
+  .entity td:last-child { color: #8b949e; text-align: right; }
+  .pk { color: #d29922 !important; font-weight: 600; }
+  .fk { color: #a371f7 !important; }
+
+  .warn { background: #d2992215; border: 1px solid #d2992233; border-radius: 6px; padding: 12px 16px; margin: 12px 0; }
+  .warn strong { color: #d29922; }
+
+  .pm { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin: 16px 0; }
+  .pm-title { font-size: 14px; font-weight: 600; color: #f0f6fc; margin-bottom: 4px; }
+
+  blockquote { border-left: 3px solid #30363d; padding-left: 12px; color: #8b949e; margin: 8px 0; font-style: italic; }
+</style>
+</head>
+<body>
+
+<nav>
+  <h2>PROJECT_NAME</h2>
+  <a href="#definitions" class="section-head">Definitions</a>
+  <a href="#data-model" class="section-head">Data Model</a>
+  <!-- AI: Add sub-links per domain group, e.g.: -->
+  <!-- <a href="#erd-core">Core</a> -->
+  <!-- <a href="#erd-billing">Billing</a> -->
+  <a href="#pages" class="section-head">Pages &amp; Routes</a>
+  <a href="#api" class="section-head">API Surface</a>
+  <a href="#changelog" class="section-head">Changelog</a>
+  <a href="#postmortems" class="section-head">Postmortems</a>
+</nav>
+
+<main>
+
+<h1>PROJECT_NAME Architecture</h1>
+<p class="subtitle">Updated YYYY-MM-DD.</p>
+
+<!-- SECTION:definitions -->
+<h2 id="definitions">Definitions</h2>
+<p>Terms that have precise meanings in this project. Mixing them up causes bugs.</p>
+<table>
+  <tr><th>Term</th><th>Meaning</th><th>Where</th><th>Example</th></tr>
+  <!-- AI: Fill from codebase. Focus on terms that are ambiguous or overloaded. -->
+</table>
+<!-- /SECTION:definitions -->
+
+
+<!-- SECTION:data-model -->
+<h2 id="data-model">Data Model</h2>
+
+<!-- Option A: Mermaid ERD (renders with internet access) -->
+<div class="mermaid">
+erDiagram
+    %% AI: Generate from database schema, migrations, or ORM models
+</div>
+
+<!-- Option B: Entity cards (always renders) -->
+<div class="erd-grid">
+  <!--
+  <div class="entity"><div class="entity-hdr"><div class="dot dot-core"></div>table_name</div><table>
+    <tr><td class="pk">id</td><td>SERIAL PK</td></tr>
+    <tr><td class="fk">parent_id</td><td>FK -> parent</td></tr>
+    <tr><td>column</td><td>TYPE</td></tr>
+  </table></div>
+  -->
+</div>
+<!-- /SECTION:data-model -->
+
+
+<!-- SECTION:pages -->
+<h2 id="pages">Pages & Routes</h2>
+<table>
+  <tr><th>Path</th><th>Component</th><th>Purpose</th></tr>
+  <!-- AI: Fill from router config or file structure -->
+</table>
+<!-- /SECTION:pages -->
+
+
+<!-- SECTION:api -->
+<h2 id="api">API Surface</h2>
+<table>
+  <tr><th>Endpoint</th><th>Method</th><th>Purpose</th></tr>
+  <!-- AI: Fill from route definitions -->
+</table>
+<!-- /SECTION:api -->
+
+
+<!-- SECTION:changelog -->
+<h2 id="changelog">Changelog</h2>
+
+<div style="margin-bottom:16px;">
+  <button onclick="filterChangelog('all')" style="background:#21262d;color:#c9d1d9;border:1px solid #30363d;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">All</button>
+  <button onclick="filterChangelog('bug')" style="background:#da363322;color:#f85149;border:1px solid #da363344;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">Bugs</button>
+  <button onclick="filterChangelog('feature')" style="background:#3fb95022;color:#3fb950;border:1px solid #3fb95044;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">Features</button>
+  <button onclick="filterChangelog('perf')" style="background:#79c0ff22;color:#79c0ff;border:1px solid #79c0ff44;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">Perf</button>
+  <button onclick="filterChangelog('docs')" style="background:#8b949e22;color:#8b949e;border:1px solid #8b949e44;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;">Docs</button>
+</div>
+
+<table id="changelog-table">
+  <tr><th style="width:80px;">Type</th><th style="width:100px;">Date</th><th>Change</th></tr>
+  <!--
+  <tr data-type="feature"><td><span style="color:#3fb950;">FEATURE</span></td><td>YYYY-MM-DD</td><td><strong>Title</strong> — description</td></tr>
+  <tr data-type="bug"><td><span style="color:#f85149;">BUG</span></td><td>YYYY-MM-DD</td><td><strong>Title</strong> — description <span style="color:#79c0ff;font-size:11px;">-> PM-N</span></td></tr>
+  -->
+</table>
+<!-- /SECTION:changelog -->
+
+
+<!-- SECTION:postmortems -->
+<h2 id="postmortems">Postmortems</h2>
+<p style="font-size:12px; color:#8b949e; margin-bottom:16px;">Root cause analysis so these patterns don't repeat.</p>
+
+<!--
+<div class="pm" id="pm1">
+  <div class="pm-title">PM-1: Title of the bug</div>
+  <table>
+    <tr><th style="width:120px;">Field</th><th>Detail</th></tr>
+    <tr><td><strong>Root Cause</strong></td><td>What actually went wrong</td></tr>
+    <tr><td><strong>Impact</strong></td><td>What the user experienced</td></tr>
+    <tr><td><strong>Fix</strong></td><td>What was changed</td></tr>
+    <tr><td><strong>Prevention</strong></td><td>Rule to prevent recurrence</td></tr>
+  </table>
+</div>
+-->
+<!-- /SECTION:postmortems -->
+
+
+<script>
+function filterChangelog(type) {
+  const rows = document.querySelectorAll('#changelog-table tr[data-type]');
+  rows.forEach(row => {
+    row.style.display = (type === 'all' || row.dataset.type === type) ? '' : 'none';
+  });
+}
+</script>
+
+</main>
+</body>
+</html>
