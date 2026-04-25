@@ -2,6 +2,10 @@
 
 A single HTML file that documents your product's architecture. Both humans and AI agents can read it. No build step, no renderer, no framework — open it in a browser.
 
+![Example: Cal.com architecture doc](screenshot-example.png)
+
+*Cal.com example — definitions, ERD, API surface, changelog, postmortems in one file.*
+
 ## Origin
 
 I kept asking AI agents to generate HTML artifacts — ERD visualizations, kanban boards, postmortems, changelog tables. Each time I'd look at the output in a browser, get what I needed, and throw the file away.
@@ -30,6 +34,10 @@ template.html   The empty scaffold. Fork this, fill it in.
 PROMPT.md       Prompt for any AI tool to generate/update the doc.
 example.html    Cal.com's architecture — a filled-in example so you can see what "done" looks like.
 ```
+
+![Template scaffold](screenshot-template.png)
+
+*The empty template — dark sidebar, section placeholders, ready to fill.*
 
 ## Usage
 
