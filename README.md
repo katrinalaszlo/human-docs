@@ -16,6 +16,22 @@ So I stopped starting from zero. I made a template with section markers so I cou
 
 I've been using it to stay oriented while building [Tanso](https://tansohq.com), and it's been useful enough to share.
 
+## Where this fits
+
+Every project accumulates doc files. Each one serves a different audience:
+
+| File | Who reads it | What it does |
+|------|-------------|--------------|
+| README.md | Someone evaluating the project on GitHub | First impression. Setup instructions. |
+| CLAUDE.md / .cursorrules | AI coding agents | Machine-readable instructions. Tells the agent how to behave. |
+| llms.txt | AI agents fetching context | Machine-readable site/project context. |
+| OpenAPI spec | Integrators building against your API | Formal contract. Every parameter, every response shape. |
+| **human-docs** | The builder. The person who needs to keep up. | Human-readable view of the system — what it looks like, what shipped, what broke. |
+
+human-docs doesn't replace any of these. README stays your front door. CLAUDE.md stays your agent's instructions. OpenAPI stays your API contract.
+
+human-docs is the layer underneath: the filtered, structured view that keeps the human oriented without reading the full codebase, git log, or agent context. AI agents maintain it. Humans read it.
+
 ## Why
 
 - **One file.** No scattered pages, no broken links, no "where did we put that?"
@@ -48,11 +64,26 @@ example.html    Cal.com's architecture, fully filled in.
 
 ### Updating
 
-Tell your AI tool which sections changed:
+Three ways to keep the doc current, from manual to automatic:
+
+**1. Tell the agent what changed.** Lowest friction. You know what you just shipped.
 
 > "Update the changelog and postmortems sections. Here's what changed: [paste diff or describe]"
 
 The AI finds the `<!-- SECTION:name -->` markers, edits the content between them, and leaves everything else untouched.
+
+**2. Run `update-doc.sh`.** The script diffs git history, maps changed files to doc sections, and tells you exactly which sections are stale.
+
+```bash
+./update-doc.sh              # changes since last doc update
+./update-doc.sh HEAD~5       # changes in last 5 commits
+```
+
+It prints a prompt you can paste into your AI tool. You review the update before it's committed.
+
+**3. Hook it into your workflow.** If you want the doc updated on every commit or PR, wire `update-doc.sh` into a git hook or CI step. The script outputs which sections need updating — your agent handles the rest.
+
+The tradeoff: options 1 and 2 keep the human in the loop ("AI generates, humans curate"). Option 3 is fully automatic — faster, but you give up the review step. Every update is still a git commit, so you can always diff what changed.
 
 ### Adding sections
 
