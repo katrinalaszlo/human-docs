@@ -46,6 +46,7 @@ human-docs is the layer underneath: the filtered, structured view that keeps the
 template.html   The empty scaffold. Fork this, fill it in.
 PROMPT.md       Prompt for any AI tool to generate/update the doc.
 example.html    Cal.com's architecture, fully filled in.
+docs/landing.html  Project overview / landing page. Open in a browser.
 ```
 
 ![Template scaffold](screenshot-template.png)

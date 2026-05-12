@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>human-docs — A single HTML file that documents your product's architecture</title>
+<meta name="description" content="One HTML file. Readable by humans and AI agents. No build step, no renderer, no framework. AI generates, humans curate.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F3EA;
+    --bg-soft: #F0E9D9;
+    --ink: #14212E;
+    --ink-soft: #4A5A6E;
+    --ink-muted: #7E8A98;
+    --rule: #D8CDB5;
+    --rule-soft: #E7DEC8;
+    --accent: #B85D33;
+    --accent-soft: #E8C9B5;
+    --accent-dark: #9A4825;
+    --green: #4A7B5C;
+    --amber: #B8853D;
+    --red: #B33A3A;
+    --card: #FBFAF4;
+    --code-bg: #161D26;
+    --code-ink: #D8DEE6;
+    --code-mute: #7A8898;
+    --code-rule: #2C3742;
+    --code-green: #C3E88D;
+    --code-blue: #82AAFF;
+    --code-orange: #FFCB6B;
+    --code-purple: #C792EA;
+    --code-com: #5D6F82;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 5vw; }
+  .container.narrow { max-width: 760px; }
+  .container.wide { max-width: 1240px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* NAV */
+  nav.top {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(247, 243, 234, 0.94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+    padding: 14px 0;
+  }
+  nav.top .inner {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .brand:hover { text-decoration: none; color: var(--accent); }
+  .brand-mark {
+    width: 22px; height: 22px;
+    background: var(--ink);
+    color: #F7F3EA;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 3px;
+  }
+  .nav-links { display: flex; gap: 24px; margin-left: 12px; }
+  .nav-links a {
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    font-weight: 500;
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+  }
+  .nav-links a:hover { color: var(--ink); text-decoration: none; }
+  .nav-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.15s;
+    color: var(--ink);
+  }
+  .btn:hover { text-decoration: none; }
+  .btn-primary { background: var(--ink); color: #F7F3EA; }
+  .btn-primary:hover { background: var(--accent); color: white; }
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--rule);
+  }
+  .btn-outline:hover { border-color: var(--ink); background: var(--card); }
+  .btn-lg { font-size: 15px; padding: 11px 22px; }
+  .star-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    background: var(--bg-soft);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+  @media (max-width: 800px) {
+    .nav-links { display: none; }
+  }
+
+  /* HERO */
+  .hero { padding: 84px 0 56px; border-bottom: 1px solid var(--rule); }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow .pill {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(40px, 6vw, 76px);
+    line-height: 1.02;
+    letter-spacing: -0.028em;
+    margin-bottom: 28px;
+    font-variation-settings: 'opsz' 96;
+    max-width: 22ch;
+  }
+  h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+  .deck {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(19px, 2.2vw, 24px);
+    font-weight: 400;
+    line-height: 1.42;
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin-bottom: 36px;
+    font-variation-settings: 'opsz' 14;
+  }
+  .hero-cta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-muted);
+    letter-spacing: 0.02em;
+  }
+  .hero-meta strong { color: var(--ink); font-weight: 600; }
+
+  .hero-img {
+    margin-top: 64px;
+    border: 1px solid var(--rule);
+    background: var(--card);
+    overflow: hidden;
+    box-shadow: 0 24px 48px -24px rgba(20, 33, 46, 0.2);
+    position: relative;
+  }
+  .hero-img img { width: 100%; display: block; }
+  .hero-img .browser-chrome {
+    background: var(--bg);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .browser-chrome .dots { display: flex; gap: 6px; }
+  .browser-chrome .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--rule); }
+  .browser-chrome .url {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    padding: 4px 12px;
+    border-radius: 3px;
+    margin-left: 12px;
+    font-size: 11px;
+    flex: 1;
+    max-width: 480px;
+  }
+  .figcap {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+    margin-top: 14px;
+    text-align: center;
+  }
+  .figcap a { color: var(--ink-soft); text-decoration: underline; }
+
+  /* SECTION HEADER */
+  section { padding: 80px 0; border-bottom: 1px solid var(--rule); }
+  section.compact { padding: 56px 0; }
+  .section-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+  h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(30px, 4.5vw, 52px);
+    line-height: 1.04;
+    letter-spacing: -0.022em;
+    margin-bottom: 24px;
+    font-variation-settings: 'opsz' 72;
+    max-width: 22ch;
+  }
+  h2 em { font-style: italic; color: var(--accent); font-weight: 400; }
+  .section-lede {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 64ch;
+    margin-bottom: 40px;
+  }
+
+  /* PROSE */
+  p.prose {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 62ch;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+  p.prose.large {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 22px;
+    line-height: 1.5;
+    color: var(--ink);
+    font-variation-settings: 'opsz' 24;
+  }
+  p.prose strong { font-weight: 600; }
+
+  .origin-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+    align-items: start;
+  }
+  @media (max-width: 800px) {
+    .origin-grid { grid-template-columns: 1fr; gap: 24px; }
+  }
+
+  /* WHERE IT FITS — comparison table */
+  .fits-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--rule);
+    background: var(--card);
+    margin: 16px 0;
+  }
+  .fits-table th {
+    background: var(--bg-soft);
+    padding: 14px 18px;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+    font-weight: 600;
+    border-bottom: 2px solid var(--rule);
+  }
+  .fits-table td {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+    font-size: 14.5px;
+    line-height: 1.5;
+  }
+  .fits-table td.file {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    width: 200px;
+  }
+  .fits-table tr.featured {
+    background: rgba(184, 93, 51, 0.06);
+    border-top: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+  }
+  .fits-table tr.featured td.file {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .fits-table tbody tr:last-child td { border-bottom: none; }
+
+  /* HOW IT WORKS — 3 ways */
+  .ways {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin: 16px 0;
+  }
+  .way {
+    background: var(--card);
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+  }
+  .way-num {
+    font-family: 'Fraunces', serif;
+    font-size: 40px;
+    line-height: 1;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+  .way h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+  }
+  .way p {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+  }
+  .way-code {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 14px 16px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    margin-top: auto;
+    overflow-x: auto;
+  }
+  .way-code .com { color: var(--code-com); }
+  .way-code .str { color: var(--code-green); }
+  .way-code .kw { color: var(--code-purple); }
+  .way-code .blue { color: var(--code-blue); }
+  .way-code .or { color: var(--code-orange); }
+  .way-code .prompt { color: var(--code-mute); }
+  .way-tradeoff {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--rule);
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+  }
+  @media (max-width: 900px) {
+    .ways { grid-template-columns: 1fr; }
+  }
+
+  /* SECTIONS — what the doc contains */
+  .sections-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin: 16px 0;
+  }
+  .sec-card {
+    background: var(--card);
+    padding: 28px 24px;
+  }
+  .sec-card .marker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 3px 8px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-bottom: 14px;
+    letter-spacing: 0.04em;
+  }
+  .sec-card h4 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .sec-card .q {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-variation-settings: 'opsz' 14;
+  }
+  .sec-card p {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  @media (max-width: 900px) {
+    .sections-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    .sections-grid { grid-template-columns: 1fr; }
+  }
+
+  /* CODE EXCERPT (the SECTION marker pattern) */
+  .code-excerpt {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 28px 32px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    margin: 32px 0;
+    overflow-x: auto;
+    border: 1px solid var(--code-rule);
+  }
+  .code-excerpt .com { color: var(--code-com); font-style: italic; }
+  .code-excerpt .tag { color: var(--code-blue); }
+  .code-excerpt .attr { color: var(--code-orange); }
+  .code-excerpt .marker { color: var(--accent); font-weight: 600; }
+
+  /* PHILOSOPHY */
+  .philo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    margin: 32px 0;
+  }
+  .philo-item {
+    padding: 28px 32px;
+    background: var(--card);
+    border-left: 3px solid var(--accent);
+    border-top: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .philo-item h5 {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.25;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+  .philo-item p {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  @media (max-width: 800px) {
+    .philo { grid-template-columns: 1fr; gap: 16px; }
+  }
+
+  /* GET STARTED — three-step */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin: 32px 0;
+  }
+  .step {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    padding: 28px;
+    position: relative;
+  }
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .step h5 {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.25;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+  .step p {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .step-code {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 10px 12px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.6;
+  }
+  .step-code .com { color: var(--code-com); }
+  .step-code .or { color: var(--code-orange); }
+  @media (max-width: 900px) {
+    .steps { grid-template-columns: 1fr; gap: 16px; }
+  }
+
+  /* WHAT'S IN THE BOX */
+  .box {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 28px 32px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    margin: 32px 0;
+    border: 1px solid var(--code-rule);
+  }
+  .box .file {
+    color: var(--code-blue);
+    font-weight: 500;
+    display: inline-block;
+    width: 200px;
+  }
+  .box .desc { color: var(--code-mute); }
+
+  /* CTA */
+  .cta {
+    padding: 96px 0;
+    background: var(--ink);
+    color: #FAF6EC;
+    border-bottom: 1px solid var(--ink);
+  }
+  .cta .inner { text-align: center; max-width: 720px; margin: 0 auto; }
+  .cta-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    margin-bottom: 20px;
+  }
+  .cta h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 1.0;
+    letter-spacing: -0.025em;
+    margin-bottom: 20px;
+    color: #FAF6EC;
+    max-width: 24ch;
+    margin-left: auto;
+    margin-right: auto;
+    font-variation-settings: 'opsz' 96;
+  }
+  .cta h2 em { color: var(--accent-soft); font-style: italic; font-weight: 400; }
+  .cta p {
+    font-size: 18px;
+    line-height: 1.55;
+    color: rgba(250, 246, 236, 0.7);
+    margin-bottom: 32px;
+  }
+  .cta-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .cta .btn-primary { background: var(--accent); }
+  .cta .btn-primary:hover { background: white; color: var(--accent-dark); }
+  .cta .btn-outline { color: #FAF6EC; border-color: rgba(250, 246, 236, 0.25); }
+  .cta .btn-outline:hover { background: rgba(250, 246, 236, 0.1); border-color: rgba(250, 246, 236, 0.4); }
+  .cta-fine {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(250, 246, 236, 0.45);
+    letter-spacing: 0.04em;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 48px 0 32px;
+    background: var(--bg);
+  }
+  footer .row {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: center;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+  }
+  footer .brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+  }
+  footer .credit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+  footer .credit a { color: var(--ink); border-bottom: 1px solid var(--rule); }
+  footer .credit a:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+
+  /* CALLOUT BLOCK */
+  .callout {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    padding: 28px 32px;
+    margin: 32px 0;
+  }
+  .callout p {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    line-height: 1.5;
+    color: var(--ink);
+    font-variation-settings: 'opsz' 24;
+  }
+  .callout p em { color: var(--accent); font-style: italic; }
+  .callout .by {
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* image side-by-side */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 32px 0;
+  }
+  .compare-cell {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    overflow: hidden;
+  }
+  .compare-cell img { width: 100%; display: block; }
+  .compare-cell .label {
+    padding: 12px 16px;
+    background: var(--bg);
+    border-top: 1px solid var(--rule);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .compare-cell .label strong { color: var(--ink); }
+  @media (max-width: 700px) {
+    .compare { grid-template-columns: 1fr; }
+  }
+
+  /* SVG icons */
+  .icon-gh {
+    width: 16px; height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top">
+  <div class="container inner">
+    <a href="#" class="brand">
+      <span class="brand-mark">hd</span>
+      <span>human-docs</span>
+    </a>
+    <div class="nav-links">
+      <a href="#why">Why</a>
+      <a href="#fits">Where it fits</a>
+      <a href="#how">How it works</a>
+      <a href="#sections">Sections</a>
+      <a href="#start">Get started</a>
+    </div>
+    <div class="nav-right">
+      <span class="star-count">★ MIT</span>
+      <a href="https://github.com/katrinalaszlo/human-docs" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+        <svg class="icon-gh" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
+        View on GitHub
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="container">
+    <div class="eyebrow">
+      <span class="pill">OSS · MIT</span>
+      A template, a prompt, a script
+    </div>
+    <h1>A single HTML file that documents your product's <em>architecture.</em></h1>
+    <p class="deck">Readable by humans and AI agents. No build step, no renderer, no framework. Open it in a browser.</p>
+    <div class="hero-cta">
+      <a href="https://github.com/katrinalaszlo/human-docs" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg">
+        <svg class="icon-gh" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
+        Star &amp; clone the repo
+      </a>
+      <a href="#how" class="btn btn-outline btn-lg">How it works →</a>
+    </div>
+    <div class="hero-meta">
+      <span><strong>3 files</strong> · template, prompt, script</span>
+      <span><strong>0 dependencies</strong></span>
+      <span><strong>Works with</strong> Claude Code · Cursor · Codex · any AI</span>
+      <span><strong>License:</strong> MIT</span>
+    </div>
+
+    <div class="hero-img">
+      <div class="browser-chrome">
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <div class="url">file:///cal.com/docs/architecture.html</div>
+      </div>
+      <img src="https://raw.githubusercontent.com/katrinalaszlo/human-docs/main/screenshot-example.png" alt="Example: Cal.com architecture documented in human-docs format. Sidebar nav, definitions, ERD, API surface, changelog, postmortems — all in one HTML file.">
+    </div>
+    <div class="figcap">
+      Fig. 01 — <a href="https://github.com/katrinalaszlo/human-docs/blob/main/example.html" target="_blank" rel="noopener noreferrer">Cal.com example</a>: definitions, ERD, API surface, changelog, and postmortems in one file. Fully filled in.
+    </div>
+  </div>
+</header>
+
+<!-- ORIGIN STORY -->
+<section id="why">
+  <div class="container">
+    <div class="section-tag">§ 01 · Origin</div>
+    <h2>I kept generating structured docs and <em>throwing them away.</em></h2>
+
+    <div class="origin-grid">
+      <div>
+        <p class="prose">I kept asking AI tools to generate structured documents. ERD visualizations, changelog tables, postmortem writeups. Each time I'd look at the output in a browser, get what I needed, and discard the file.</p>
+        <p class="prose">But the output was already organized. The tables had the data. The section headers mapped the architecture. The only waste was starting from zero every time.</p>
+        <p class="prose">So I stopped starting from zero. I made a template with section markers so I could update what changed and leave everything else intact. The file compounds over time instead of getting thrown away.</p>
+        <p class="prose">I've been using it to stay oriented while building <a href="https://tansohq.com" target="_blank" rel="noopener noreferrer">Tanso</a>, and it's been useful enough to share.</p>
+      </div>
+      <div>
+        <div class="callout">
+          <p>"The output was already organized. The tables had the data. The only waste was <em>starting from zero every time.</em>"</p>
+          <div class="by">— Origin note</div>
+        </div>
+        <div class="compare" style="grid-template-columns: 1fr;">
+          <div class="compare-cell">
+            <img src="https://raw.githubusercontent.com/katrinalaszlo/human-docs/main/screenshot-template.png" alt="The empty template — dark sidebar, section placeholders, ready to fill in by an AI agent.">
+            <div class="label"><strong>template.html</strong> — empty scaffold</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHERE IT FITS -->
+<section id="fits">
+  <div class="container">
+    <div class="section-tag">§ 02 · Where it fits</div>
+    <h2>It doesn't replace your other docs. It sits <em>underneath</em> them.</h2>
+    <p class="section-lede">Every project accumulates doc files. Each one serves a different audience. human-docs is the layer the others assume but never provide — the filtered, structured view that keeps the builder oriented without reading the full codebase, git log, or agent context.</p>
+
+    <table class="fits-table">
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Who reads it</th>
+          <th>What it does</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="file">README.md</td>
+          <td>Someone evaluating the project on GitHub</td>
+          <td>First impression. Setup instructions.</td>
+        </tr>
+        <tr>
+          <td class="file">CLAUDE.md / .cursorrules</td>
+          <td>AI coding agents</td>
+          <td>Machine-readable instructions. Tells the agent how to behave.</td>
+        </tr>
+        <tr>
+          <td class="file">llms.txt</td>
+          <td>AI agents fetching context</td>
+          <td>Machine-readable site/project context.</td>
+        </tr>
+        <tr>
+          <td class="file">OpenAPI spec</td>
+          <td>Integrators building against your API</td>
+          <td>Formal contract. Every parameter, every response shape.</td>
+        </tr>
+        <tr class="featured">
+          <td class="file">human-docs</td>
+          <td>The builder. The person who needs to keep up.</td>
+          <td>Human-readable view of the system — what it looks like, what shipped, what broke. AI agents maintain it. Humans read it.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container wide">
+    <div class="section-tag">§ 03 · How it works</div>
+    <h2>Three ways to keep it current — from <em>manual</em> to automatic.</h2>
+    <p class="section-lede">The doc is just an HTML file with <code style="background:var(--bg-soft);padding:2px 6px;border-radius:3px;font-size:14px;font-family:'JetBrains Mono';">&lt;!-- SECTION:name --&gt;</code> markers. Any AI tool that reads files can update one section without touching the rest. Pick the level of automation that fits your workflow.</p>
+
+    <div class="ways">
+      <div class="way">
+        <div class="way-num">1</div>
+        <h4>Tell the agent what changed.</h4>
+        <p>Lowest friction. You know what you just shipped — just describe it.</p>
+        <div class="way-code">
+          <span class="prompt">&gt;</span> <span class="str">"Update the changelog</span><br>
+          <span class="str">and postmortems sections.</span><br>
+          <span class="str">Here's the diff: [paste]"</span><br>
+          <br>
+          <span class="com">// Agent finds the SECTION</span><br>
+          <span class="com">// markers, edits between</span><br>
+          <span class="com">// them, leaves the rest.</span>
+        </div>
+        <div class="way-tradeoff">human in the loop · review before commit</div>
+      </div>
+
+      <div class="way">
+        <div class="way-num">2</div>
+        <h4>Run <code style="background:var(--bg-soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:'JetBrains Mono';">update-doc.sh</code></h4>
+        <p>The script diffs git history, maps changed files to doc sections, and prints a prompt to paste into your AI tool.</p>
+        <div class="way-code">
+          <span class="com"># changes since last update</span><br>
+          ./update-doc.sh<br>
+          <br>
+          <span class="com"># changes in last 5 commits</span><br>
+          ./update-doc.sh <span class="or">HEAD~5</span>
+        </div>
+        <div class="way-tradeoff">git-aware · semi-automatic · review the prompt</div>
+      </div>
+
+      <div class="way">
+        <div class="way-num">3</div>
+        <h4>Hook it into your workflow.</h4>
+        <p>Wire <code style="background:var(--bg-soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:'JetBrains Mono';">update-doc.sh</code> into a git hook or CI step. Script outputs which sections are stale; your agent handles the rest.</p>
+        <div class="way-code">
+          <span class="com"># .git/hooks/post-commit</span><br>
+          <span class="com">#!/usr/bin/env bash</span><br>
+          ./update-doc.sh | \<br>
+          &nbsp;&nbsp;<span class="blue">claude</span> --commit
+        </div>
+        <div class="way-tradeoff">fully automatic · every update is a git commit you can diff</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 40px;">
+      <p>The tradeoff: options 1 and 2 keep the human in the loop <em>(AI generates, humans curate)</em>. Option 3 is fully automatic — faster, but you give up the review step. Every update is still a git commit, so you can always diff what changed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION MARKER PATTERN -->
+<section class="compact">
+  <div class="container narrow">
+    <div class="section-tag">§ 04 · The marker pattern</div>
+    <h2>Surgical updates, not regeneration.</h2>
+    <p class="section-lede">Each section of the template is wrapped in HTML comments. Agents edit content between them — never touching the rest of the file. Like reviewing a git diff: only what actually changed.</p>
+
+    <pre class="code-excerpt"><span class="com">&lt;!-- <span class="marker">SECTION:changelog</span> --&gt;</span>
+<span class="tag">&lt;h2</span> <span class="attr">id</span>=<span class="attr">"changelog"</span><span class="tag">&gt;</span>Changelog<span class="tag">&lt;/h2&gt;</span>
+<span class="tag">&lt;table</span> <span class="attr">id</span>=<span class="attr">"changelog-table"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;tr</span> <span class="attr">data-type</span>=<span class="attr">"feature"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;td&gt;</span>FEATURE<span class="tag">&lt;/td&gt;</span>
+    <span class="tag">&lt;td&gt;</span>2026-05-12<span class="tag">&lt;/td&gt;</span>
+    <span class="tag">&lt;td&gt;</span>Added pgvector to search<span class="tag">&lt;/td&gt;</span>
+  <span class="tag">&lt;/tr&gt;</span>
+  <span class="com">&lt;!-- agent adds new rows here --&gt;</span>
+<span class="tag">&lt;/table&gt;</span>
+<span class="com">&lt;!-- <span class="marker">/SECTION:changelog</span> --&gt;</span></pre>
+
+    <p class="prose" style="text-align: center; max-width: 50ch; margin: 0 auto;">Section mapping does the heavy lifting: a schema migration updates <strong>data-model</strong> + entity cards. A new endpoint updates <strong>api</strong> + changelog. A bug fix updates <strong>changelog</strong> + postmortems. The doc stays coherent because the markers say what's where.</p>
+  </div>
+</section>
+
+<!-- SECTIONS -->
+<section id="sections">
+  <div class="container">
+    <div class="section-tag">§ 05 · Sections</div>
+    <h2>Six PM-minded sections, out of the box.</h2>
+    <p class="section-lede">Not just endpoint lists. The default template asks the questions a builder actually needs to answer when they sit down — definitions that prevent overloaded-term bugs, postmortems that prevent repeating them.</p>
+
+    <div class="sections-grid">
+      <div class="sec-card">
+        <span class="marker">SECTION:definitions</span>
+        <h4>Definitions</h4>
+        <div class="q">"What does X mean in this codebase?"</div>
+        <p>Prevents the #1 source of bugs: overloaded terms. Pulls from database columns, API fields, and comments where something is clarified.</p>
+      </div>
+      <div class="sec-card">
+        <span class="marker">SECTION:data-model</span>
+        <h4>Data Model</h4>
+        <div class="q">"What tables exist and how do they relate?"</div>
+        <p>Mermaid ERD plus entity cards, grouped by domain (core, billing, analytics). Generated from migrations, schema files, or ORM models.</p>
+      </div>
+      <div class="sec-card">
+        <span class="marker">SECTION:pages</span>
+        <h4>Pages &amp; Routes</h4>
+        <div class="q">"What can users see?"</div>
+        <p>Every user-facing route with its path, component name, and purpose. Read from the router config or file-based routing structure.</p>
+      </div>
+      <div class="sec-card">
+        <span class="marker">SECTION:api</span>
+        <h4>API Surface</h4>
+        <div class="q">"What can code call?"</div>
+        <p>Endpoints grouped by domain. Method, path, purpose. Read from route/controller definitions.</p>
+      </div>
+      <div class="sec-card">
+        <span class="marker">SECTION:changelog</span>
+        <h4>Changelog</h4>
+        <div class="q">"What shipped?"</div>
+        <p>Filterable by type (bug, feature, perf, docs). Generated from git log, with bug entries linked to postmortems by ID.</p>
+      </div>
+      <div class="sec-card">
+        <span class="marker">SECTION:postmortems</span>
+        <h4>Postmortems</h4>
+        <div class="q">"What broke and how do we prevent it?"</div>
+        <p>Root cause, impact, fix, prevention rule. Numbered PM-1, PM-2, etc. The most valuable section — changelogs record what happened, postmortems record what not to do again.</p>
+      </div>
+    </div>
+
+    <p class="prose" style="margin-top: 32px; font-size: 14.5px; color: var(--ink-soft);">Optional sections defined in <a href="https://github.com/katrinalaszlo/human-docs/blob/main/PROMPT.md" target="_blank" rel="noopener noreferrer">PROMPT.md</a>: User Stories (acceptance criteria), Customer Model (multi-tenant products), Board (kanban for small teams), Emails (transactional catalog).</p>
+  </div>
+</section>
+
+<!-- PHILOSOPHY -->
+<section class="compact">
+  <div class="container">
+    <div class="section-tag">§ 06 · Philosophy</div>
+    <h2>Four opinions baked in.</h2>
+
+    <div class="philo">
+      <div class="philo-item">
+        <h5>Docs should be readable without context.</h5>
+        <p>Hand this file to someone who just joined your team. They should understand what the product does, what the data looks like, what broke recently, and what shipped — without reading any other file.</p>
+      </div>
+      <div class="philo-item">
+        <h5>Postmortems are the most valuable section.</h5>
+        <p>Changelogs record what happened. Postmortems record what not to do again. Root cause, impact, fix, and a prevention rule. Numbered, linked from changelog bugs, surfaced for every new contributor.</p>
+      </div>
+      <div class="philo-item">
+        <h5>One file is a feature, not a limitation.</h5>
+        <p>The moment you split docs across files, someone stops updating one of them. One file means one place to look, one thing to update, one artifact to share.</p>
+      </div>
+      <div class="philo-item">
+        <h5>AI generates, humans curate.</h5>
+        <p>The AI reads your codebase and fills in the template. You read the output and fix what it got wrong. Over time the doc compounds — each update adds to the changelog, each bug adds a postmortem, each migration updates the ERD.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT'S IN THE BOX -->
+<section class="compact" id="start">
+  <div class="container">
+    <div class="section-tag">§ 07 · What's in the box</div>
+    <h2>Three files. <em>That's it.</em></h2>
+    <p class="section-lede">Clone the repo. Three files do the work. No package install, no build pipeline, no service to sign up for.</p>
+
+    <div class="box">
+      <div><span class="file">template.html</span><span class="desc">The empty scaffold. Fork this, fill it in.</span></div>
+      <div><span class="file">PROMPT.md</span><span class="desc">Prompt for any AI tool to generate/update the doc.</span></div>
+      <div><span class="file">example.html</span><span class="desc">Cal.com's architecture, fully filled in.</span></div>
+      <div><span class="file">update-doc.sh</span><span class="desc">Optional: maps git diffs to stale sections.</span></div>
+    </div>
+
+    <h3 style="font-family:'Fraunces',serif; font-size:24px; font-weight:500; margin: 48px 0 16px; letter-spacing:-0.01em;">First time</h3>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">Step 01</div>
+        <h5>Copy the template</h5>
+        <p>Drop <code style="background:var(--bg-soft);padding:1px 5px;border-radius:3px;font-size:13px;font-family:'JetBrains Mono';">template.html</code> into your project — wherever makes sense.</p>
+        <div class="step-code"><span class="com"># suggested:</span><br>cp template.html docs/<span class="or">architecture.html</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 02</div>
+        <h5>Paste the prompt</h5>
+        <p>Open your AI tool (Claude Code, Cursor, Codex). Paste <code style="background:var(--bg-soft);padding:1px 5px;border-radius:3px;font-size:13px;font-family:'JetBrains Mono';">PROMPT.md</code>. Point it at your codebase.</p>
+        <div class="step-code"><span class="com"># or pipe it in:</span><br>cat PROMPT.md | <span class="or">claude</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 03</div>
+        <h5>Open in browser</h5>
+        <p>The AI fills in the sections. You read the output, fix anything wrong, commit the file. That's it.</p>
+        <div class="step-code"><span class="com"># works in every browser</span><br>open docs/architecture.html</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="container inner">
+    <div class="cta-eyebrow">Free · MIT · Three files · No service to sign up for</div>
+    <h2>Stop generating docs and <em>throwing them away.</em></h2>
+    <p>Fork the repo. Paste the prompt. Open the file in a browser. The doc compounds from there.</p>
+    <div class="cta-buttons">
+      <a href="https://github.com/katrinalaszlo/human-docs" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg">
+        <svg class="icon-gh" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
+        Get it on GitHub
+      </a>
+      <a href="https://github.com/katrinalaszlo/human-docs/blob/main/example.html" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-lg">See the Cal.com example →</a>
+    </div>
+    <div class="cta-fine">github.com/katrinalaszlo/human-docs · template.html + PROMPT.md + update-doc.sh</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="row">
+      <a href="#" class="brand">
+        <span class="brand-mark">hd</span>
+        <span>human-docs</span>
+      </a>
+      <div class="credit">
+        Built by <a href="https://github.com/katrinalaszlo" target="_blank" rel="noopener noreferrer">Katrina Laszlo</a> while shipping <a href="https://tansohq.com" target="_blank" rel="noopener noreferrer">Tanso</a> · MIT · 2026
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
